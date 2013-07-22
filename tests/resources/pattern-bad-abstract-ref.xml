@@ -1,0 +1,5 @@
+<schema xmlns="http://purl.oclc.org/dsdl/schematron">
+	<pattern is-a="invalid">
+		<param name="foo" value="bar"/>
+	</pattern>
+</schema>

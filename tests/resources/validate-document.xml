@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<root xmlns:a="urn:x-test:a">
+	<person>
+		<name>Miloslav Hůla</name>
+		<a:nickname>milo</a:nickname>
+	</person>
+</root>

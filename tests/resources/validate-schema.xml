@@ -1,0 +1,70 @@
+<schema xmlns="http://purl.oclc.org/dsdl/schematron">
+	<title>Test for Milo\Utils\Schematron</title>
+
+	<ns prefix="a" uri="urn:x-test:a"/>
+	<ns prefix="b" uri="urn:x-test:b"/>
+
+
+	<pattern>
+		<title>Pattern 1</title>
+
+		<rule context="/">
+			<assert test="true()">S1 - pass</assert>
+			<report test="false()">S2 - pass</report>
+		</rule>
+
+		<rule context="/*">
+			<assert test="true()">S3 - pass</assert>
+			<report test="false()">S4 - pass</report>
+		</rule>
+
+		<rule context="/">
+			<assert test="false()">S5 - fail</assert>
+			<report test="true()">S6 - fail</report>
+		</rule>
+
+		<rule context="a:*">
+			<assert test="false()">S7 - fail</assert>
+		</rule>
+
+		<rule context="b:*">
+			<assert test="false()">S8 - pass - never runs</assert>
+		</rule>
+
+		<rule context="root">
+			<assert test="false()">S9 - fail - <name/></assert>
+			<assert test="false()">S10 - fail - <name path="person"/></assert>
+			<assert test="false()">S11 - fail - <name path="//a:nickname"/></assert>
+			<assert test="false()">S12 - fail - <value-of select="person"/></assert>
+			<assert test="false()">S13 - fail - <value-of select="//a:nickname"/></assert>
+		</rule>
+	</pattern>
+
+
+	<pattern abstract="true" id="absPattern">
+		<rule abstract="true" id="absRule">
+			<assert test="$test">S14 - fail - <name/></assert>
+		</rule>
+
+		<rule context="$context">
+			<extends rule="absRule"/>
+		</rule>
+	</pattern>
+
+	<pattern is-a="absPattern">
+		<param name="context" value="name"/>
+		<param name="test" value="false()"/>
+	</pattern>
+
+
+	<phase id="phase-1">
+		<active pattern="p1"/>
+	</phase>
+
+	<pattern id="p1">
+		<rule context="/">
+			<assert test="false()">S15 - fail</assert>
+		</rule>
+	</pattern>
+
+</schema>

@@ -1,0 +1,8 @@
+<schema schemaVersion="1.0" xmlns="http://purl.oclc.org/dsdl/schematron">
+	<title>Schema Title</title>
+	<pattern>
+		<rule context="/">
+			<assert test="true()">Message</assert>
+		</rule>
+	</pattern>
+</schema>

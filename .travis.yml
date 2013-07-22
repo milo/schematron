@@ -1,0 +1,14 @@
+language: php
+php:
+    - 5.3.3
+    - 5.4
+    - 5.5
+
+script: vendor/bin/tester -s tests
+
+before_script:
+    # Update composer
+    - composer self-update
+
+    # Install Nette Tester
+    - composer install --no-interaction --dev

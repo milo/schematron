@@ -1,0 +1,22 @@
+{
+	"name": "milo/schematron",
+	"type": "library",
+	"description": "Implementation of ISO Schematron with Schematron 1.5 back compatibility. Library does not need any XSLT.",
+	"license": ["BSD-3-Clause", "GPL-2.0", "GPL-3.0", "MIT"],
+	"authors": [
+		{
+			"name": "Miloslav Hůla",
+			"homepage": "https://github.com/milo"
+		}
+	],
+	"require": {
+		"php": ">=5.3.0",
+		"ext-dom": "*"
+	},
+	"require-dev": {
+		"nette/tester": "@dev"
+	},
+	"autoload": {
+		"classmap": ["Schematron.php"]
+	}
+}

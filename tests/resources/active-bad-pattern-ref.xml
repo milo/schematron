@@ -1,0 +1,10 @@
+<schema xmlns="http://purl.oclc.org/dsdl/schematron">
+	<phase id="one">
+		<active pattern="invalid"/>
+	</phase>
+	<pattern>
+		<rule context="/">
+			<assert test="true()"/>
+		</rule>
+	</pattern>
+</schema>

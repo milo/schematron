@@ -1,0 +1,3 @@
+<sch:assert xmlns:sch="http://purl.oclc.org/dsdl/schematron" test="true()">
+	Message
+</sch:assert>

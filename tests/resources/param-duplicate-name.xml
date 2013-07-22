@@ -1,0 +1,12 @@
+<schema xmlns="http://purl.oclc.org/dsdl/schematron">
+	<pattern id="p" abstract="true">
+		<rule context="/">
+			<assert test="true()"/>
+		</rule>
+	</pattern>
+
+	<pattern is-a="p">
+		<param name="foo" value="bar"/>
+		<param name="foo" value="bar"/>
+	</pattern>
+</schema>
