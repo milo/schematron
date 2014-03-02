@@ -1,6 +1,6 @@
 [Schematron](https://github.com/milo/schematron/blob/master/Schematron.php)
 ===========================================================================
-This library is an implementation of the [ISO Schematron](http://www.schematron.com/spec.html) (with Schematron 1.5 back compatibility). It is done by pure DOM processing and does not require any XLST sheets nor XLST PHP extension. It was a requirement for a developing.
+This library is an implementation of the [ISO Schematron](http://www.schematron.com/spec.html) (with Schematron 1.5 back compatibility). It is done by pure DOM processing and does not require any XSLT sheets nor XSLT PHP extension. It was a requirement for a developing.
 
 
 Usage
