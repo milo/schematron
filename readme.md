@@ -79,20 +79,20 @@ Schematron::ALLOW_MISSING_SCHEMA_ELEMENT
 Schematron::IGNORE_INCLUDE
 
 # <sch:include> are forbidden and loading fails if occures
-Schematron::FORBID_INCLUDE = 0x0004,
+Schematron::FORBID_INCLUDE
 
 # <sch:rule> with the same @context as any rule before is skipped
 # This arises from official Universal Tests (http://www.schematron.com/validators/universalTests.sch)
-Schematron::SKIP_DUPLICIT_RULE_CONTEXT = 0x0008,
+Schematron::SKIP_DUPLICIT_RULE_CONTEXT
 
 # <sch:schema> needn't to contain <sch::pattern>s
-Schematron::ALLOW_EMPTY_SCHEMA = 0x0010,
+Schematron::ALLOW_EMPTY_SCHEMA
 
 # <sch:pattern> needn't to contain <sch::rule>s
-Schematron::ALLOW_EMPTY_PATTERN = 0x0020,
+Schematron::ALLOW_EMPTY_PATTERN
 
 # <sch:rule> needn't to contain <sch:assert>s nor <sch:report>s
-Schematron::ALLOW_EMPTY_RULE = 0x0040;
+Schematron::ALLOW_EMPTY_RULE
 ```
 
 
