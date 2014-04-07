@@ -1,12 +1,14 @@
-[Schematron](https://github.com/milo/schematron/blob/master/Schematron.php)
-===========================================================================
-This library is an implementation of the [ISO Schematron](http://www.schematron.com/spec.html) (with Schematron 1.5 back compatibility). It is done by pure DOM processing and does not require any XSLT sheets nor XSLT PHP extension. It was a requirement for a developing.
+[Schematron](https://github.com/milo/schematron/blob/master/src/Schematron.php)
+============
+This library is an implementation of the [ISO Schematron](http://www.schematron.com/spec.html) (with Schematron 1.5 back compatibility). It is done by pure DOM processing and does not require any XSLT sheets nor XSLT PHP extension. It was a requirement for a development.
 
 
 Usage
 =====
 Install the Schematron by the Composer or download a release package.
 ```php
+require 'src/Schematron.php';
+
 use Milo\Schematron;
 
 $schematron = new Schmeatron;
@@ -22,8 +24,8 @@ var_dump($result);
 
 Format of the `Schematron::validate()` result depends on its second argument. E.g. an imaginary results:
 ```php
-# Flat array of failed asserts and successful reports
-$result = $schematron->validate($document, Schematron::RESULT_SIMPLE);   # default
+# Flat array of failed asserts and successful reports (it is default)
+$result = $schematron->validate($document, Schematron::RESULT_SIMPLE);
 # array (2)
 #    0 => "Person must have surname."
 #    1 => "Phone number is required."
@@ -33,19 +35,19 @@ $result = $schematron->validate($document, Schematron::RESULT_SIMPLE);   # defau
 $result = $schematron->validate($document, Schematron::RESULT_COMPLEX);
 # array (3)
 #    0 => stdClass (2)
-#    |  title => "Pattern 1" (9)
-#    |  rules => array (3)
-#    |  |  2 => stdClass (2)
-#    |  |  |  context => "/"
-#    |  |  |  errors => array (2)
-#    |  |  |  |  0 => stdClass (3)
-#    |  |  |  |  |  test => "false()" (7)
-#    |  |  |  |  |  message => "S5 - fail" (9)
-#    |  |  |  |  |  path => "/"
-#    |  |  |  |  1 => stdClass (3)
-#    |  |  |  |  |  test => "true()" (6)
-#    |  |  |  |  |  message => "S6 - fail" (9)
-#    |  |  |  |  |  path => "/"
+#       title => "Pattern 1" (9)
+#       rules => array (3)
+#          2 => stdClass (2)
+#             context => "/"
+#             errors => array (2)
+#                0 => stdClass (3)
+#                |  test => "false()" (7)
+#                |  message => "S5 - fail" (9)
+#                |  path => "/"
+#                1 => stdClass (3)
+#                   test => "true()" (6)
+#                   message => "S6 - fail" (9)
+#                   path => "/"
 
 
 # Or throws exception of first error occurence
@@ -63,7 +65,7 @@ $schematron->validate($document, Schematron::RESULT_SIMPLE, 'phase-base-rules');
 ```
 
 
-Schematron performs a schema namespace (ISO or v1.5) autodetection, but the namespace can be passed manually:
+Schematron performs a schema namespace (ISO or v1.5) autodetection but the namespace can be passed manually:
 ```php
 $schematron = new Schmeatron(Schematron::NS_ISO);
 ```
