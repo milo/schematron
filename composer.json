@@ -17,6 +17,6 @@
 		"nette/tester": "@dev"
 	},
 	"autoload": {
-		"classmap": ["Schematron.php"]
+		"classmap": ["src/Schematron.php"]
 	}
 }
