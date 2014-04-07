@@ -14,7 +14,7 @@
 		"ext-dom": "*"
 	},
 	"require-dev": {
-		"nette/tester": "@dev"
+		"nette/tester": "~1.1.0"
 	},
 	"autoload": {
 		"classmap": ["src/Schematron.php"]
