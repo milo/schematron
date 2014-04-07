@@ -19,11 +19,13 @@ $sch = new Schematron;
 $doc = new DOMDocument;
 $doc->load(SRC_DIR . '/validate-document.xml');
 
+Assert::false($sch->isLoaded());
 Assert::exception(function() use ($sch, $doc) {
 	$sch->validate($doc);
 }, 'RuntimeException', 'Schema has not been loaded yet. Load it before validation.');
 
 $sch->load(SRC_DIR . '/validate-schema.xml');
+Assert::true($sch->isLoaded());
 
 
 # RESULT_SIMPLE
