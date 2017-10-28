@@ -11,7 +11,7 @@ require 'src/Schematron.php';
 
 use Milo\Schematron;
 
-$schematron = new Schmeatron;
+$schematron = new Schematron;
 $schematron->load('schema.xml');
 
 $document = new DOMDocument;
