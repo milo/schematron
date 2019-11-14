@@ -157,6 +157,9 @@ class Schematron
 
 	/** @var array[prefix => URI]  loaded from <sch:ns> */
 	protected $namespaces = array();
+	
+	/** @var array[name => value]  {@see self::findGlobalLets()} */
+	protected $globallets = array();
 
 	/** @var stdClass[]  {@see self::findPatterns()} */
 	protected $patterns = array();
@@ -229,6 +232,9 @@ class Schematron
 
 		$this->loadSchemaBasics($schema);
 		$this->namespaces = $this->findNamespaces($schema);
+		
+		$this->globallets = $this->findGlobalLets($schema);
+		
 		$this->patterns = $this->findPatterns($schema);
 		if (!count($this->patterns) && !($this->options & self::ALLOW_EMPTY_SCHEMA)) {
 			throw new SchematronException('None <sch:pattern> found in schema.');
@@ -274,15 +280,36 @@ class Schematron
 		} else {
 			$activePatternKeys = array_keys($this->phases[$phase]);
 		}
-
+		
+		$globallets = array();
+		
+		foreach($this->globallets as $name => $value) {	
+			$globallets[$name] = $xpath->evaluate("string($value)");
+			/* May be better ways to do this. When using the variable for string comparations in xpath it
+			 * needs to be enclosed by ''.
+			*/
+			if(!is_numeric($globallets[$name])) {
+				$globallets[$name] = "'" . $globallets[$name] . "'";
+			}
+		}
+	
 		$return = array();
 		foreach ($activePatternKeys as $patternKey) {
 			$pattern = $this->patterns[$patternKey];
 			foreach ($pattern->rules as $ruleKey => $rule) {
 				foreach ($xpath->queryContext($rule->context, $doc) as $currentNode) {
+					$lets = array();
+					foreach($rule->lets as $name => $value) {
+						$lets[$name] = $xpath->evaluate("string($value)", $currentNode);
+						if(!is_numeric($lets[$name])) {
+							$lets[$name] = "'" . $lets[$name] . "'";
+						}
+					}
 					foreach ($rule->statements as $statement) {
-						if ($statement->isAssert ^ $xpath->evaluate("boolean($statement->test)", $currentNode)) {
-							$message = $this->statementToMessage($statement->node, $xpath, $currentNode);
+						$test = call_user_func($this->getReplaceCb(), $statement->test, array_merge($lets, $globallets));
+						if ($statement->isAssert ^ $xpath->evaluate("boolean($test)", $currentNode)) {
+							$message = $this->statementToMessage($statement->node, $xpath, $currentNode,
+																 array_merge($lets, $globallets));
 
 							switch ($result) {
 								case self::RESULT_EXCEPTION:
@@ -555,6 +582,8 @@ class Schematron
 
 
 
+    
+
 	/**
 	 * Search for all <sch:ns>.
 	 * @return array[string prefix => string URI]
@@ -576,8 +605,6 @@ class Schematron
 		}
 		return $namespaces;
 	}
-
-
 
 	/**
 	 * Search for all <sch:pattern>. Abstract patterns are instantized.
@@ -741,8 +768,9 @@ class Schematron
 			$rules[] = (object) array(
 				'context' => $context,
 				'statements' => $statements = $this->findStatements($element, $abstracts),
+				'lets' => $this->findLets($element)
 			);
-
+		
 			if (!count($statements) && !($this->options & self::ALLOW_EMPTY_RULE)) {
 				throw new SchematronException("Asserts nor reports not found for <$element->nodeName> on line {$element->getLineNo()}.");
 			}
@@ -802,7 +830,42 @@ class Schematron
 		}
 		return $statements;
 	}
+	
+	/**
+	 * Search for all <sch:let> not specified inside a rule.
+	 * @return array[string name => string value]
+	 * @throws SchematronException
+	 */
+	protected function findGlobalLets(DOMDocument $schema)
+	{
+		$lets = $elements = array();
+		foreach ($this->xPath->query('//sch:let[not(parent::sch:rule)]', $schema) as $element) {
+			$name = Helpers::getAttribute($element, 'name');
+			$value = Helpers::getAttribute($element, 'value');
+			if (array_key_exists($name, $elements)) {
+				throw new SchematronException("Global variable '$name' on line {$element->getLineNo()} is alredy declared on line {$elements[$name]->getLineNo()}.");
+			}
+			$elements[$name] = $element;
+			$lets[$name] = $value;
+		}
+		return $lets;
+	}
 
+	/**
+	 * Search for all <sch:let>
+	 * @return stdClass[]
+	 * @throws SchematronException
+	 */
+	protected function findLets(DOMElement $rule)
+	{
+		$lets = array();
+		foreach ($this->xPath->query('sch:let', $rule) as $node) {
+			$name = Helpers::getAttribute($node, 'name');
+			$value = Helpers::getAttribute($node, 'value');
+			$lets[$name] = $value;
+		}
+		return $lets;
+	}
 
 
 	/**
@@ -855,7 +918,7 @@ class Schematron
 	 * Expands <sch:name> and <sch:value-of> in assertion/report message.
 	 * @return string
 	 */
-	protected function statementToMessage(DOMElement $stmt, SchematronXPath $xPath, DOMNode $current)
+	protected function statementToMessage(DOMElement $stmt, SchematronXPath $xPath, DOMNode $current, $lets = array())
 	{
 		$message = '';
 		foreach ($stmt->childNodes as $node) {
@@ -864,7 +927,9 @@ class Schematron
 					$message .= $xPath->evaluate('name(' . Helpers::getAttribute($node, 'path', '') . ')', $current);
 
 				} elseif ($node->localName === 'value-of') {
-					$message .= $xPath->evaluate('string(' . Helpers::getAttribute($node, 'select') . ')', $current);
+					$selectValue = $test = call_user_func($this->getReplaceCb(), Helpers::getAttribute($node, 'select'),
+														  $lets);
+					$message .= $xPath->evaluate('string(' . $selectValue . ')', $current);
 
 				} else {
 					/** @todo warning? */
