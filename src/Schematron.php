@@ -60,35 +60,35 @@ use stdClass;
 class Schematron
 {
 	/** Class version */
-	const
+	public const
 		VERSION = '1.0.0';
 
 	/** Namespace of supported schematron versions */
-	const
+	public const
 		NS_DETECT = null,
 		NS_ISO = 'http://purl.oclc.org/dsdl/schematron',
 		NS_1_5 = 'http://www.ascc.net/xml/schematron';
 
 	/** Type of {@link self::validate()} return value */
-	const
+	public const
 		RESULT_SIMPLE = 'simple',
 		RESULT_COMPLEX = 'complex',
 		RESULT_EXCEPTION = 'exception';
 
 	/** Standardized validation phase */
-	const
+	public const
 		PHASE_ALL = '#ALL',
 		PHASE_DEFAULT = '#DEFAULT';
 
 	/** Type of include URIs for {@link self::setAllowedInclude()} */
-	const
+	public const
 		INCLUDE_URL = 0x01,
 		INCLUDE_ABSOLUTE_PATH = 0x02,
 		INCLUDE_RELATIVE_PATH = 0x04,
 		INCLUDE_ALL = 0xFF;
 
 
-	const
+	public const
 		/** Default options */
 		DEFAULT_OPTIONS = 0x0000,
 
@@ -165,10 +165,10 @@ class Schematron
 
 
 	/**
-	 * @param  string  schema namespace (self::NS_*)
+	 * @param  string|null $namespace  schema namespace (self::NS_*)
 	 * @throws InvalidArgumentException  when unsupported namespace passed
 	 */
-	public function __construct($namespace = self::NS_DETECT)
+	public function __construct(?string $namespace = self::NS_DETECT)
 	{
 		if (!in_array($namespace, [self::NS_DETECT, self::NS_ISO, self::NS_1_5], true)) {
 			throw new InvalidArgumentException("Unsupported schema namespace '$namespace'.");
@@ -181,11 +181,12 @@ class Schematron
 
 	/**
 	 * Loads schematron schema from file.
-	 * @param  string  path/URI to schema file
-	 * @param  int  LibXML options
+	 * @param  string $file  path/URI to schema file
+	 * @param  int|null $options  LibXML options
+	 * @return static
 	 * @throws SchematronException  when schema loading fails
 	 */
-	public function load($file, $options = null)
+	public function load(string $file, int $options = null)
 	{
 		$this->domOptions = $options === null ? (LIBXML_NOENT | LIBXML_NOBLANKS) : $options;
 
@@ -207,7 +208,8 @@ class Schematron
 
 	/**
 	 * Loads schematron schema from DOMDocument.
-	 * @return self
+	 * @param  DOMDocument $schema
+	 * @return static
 	 * @throws SchematronException  when schema loading fails
 	 * @throws RuntimeException  when <sch:include> expanding fails
 	 */
@@ -241,15 +243,15 @@ class Schematron
 
 	/**
 	 * Validate document over against loaded schema.
-	 * @param  DOMDocument  document to validate
-	 * @param  string  type of return value
-	 * @param  string  validation phase
+	 * @param  DOMDocument $doc  document to validate
+	 * @param  string $result  type of return value
+	 * @param  string $phase  validation phase
 	 * @return array
 	 * @throws RuntimeException  when schema has not been loaded yet
 	 * @throws InvalidArgumentException  when validation $phase is not defined
 	 * @throws SchematronException  when $result is RESULT_EXCEPTION and document is not valid
 	 */
-	public function validate(DOMDocument $doc, $result = self::RESULT_SIMPLE, $phase = self::PHASE_DEFAULT)
+	public function validate(DOMDocument $doc, string $result = self::RESULT_SIMPLE, string $phase = self::PHASE_DEFAULT): array
 	{
 		if (!$this->loaded) {
 			throw new RuntimeException('Schema has not been loaded yet. Load it before validation.');
@@ -324,9 +326,8 @@ class Schematron
 
 	/**
 	 * Returns version loaded from @schemaVersion on <sch:schema>
-	 * @return string|null
 	 */
-	public function getSchemaVersion()
+	public function getSchemaVersion(): ?string
 	{
 		return $this->version;
 	}
@@ -335,9 +336,8 @@ class Schematron
 
 	/**
 	 * Returns title loaded from <sch:title> in <sch:schema>
-	 * @return string|null
 	 */
-	public function getSchemaTitle()
+	public function getSchemaTitle(): ?string
 	{
 		return $this->title;
 	}
@@ -346,10 +346,10 @@ class Schematron
 
 	/**
 	 * Set processing options, {@link self::DEFAULT_OPTIONS}
-	 * @param  int  mask of options
-	 * @return self
+	 * @param  int $options  mask of options
+	 * @return static
 	 */
-	public function setOptions($options = self::DEFAULT_OPTIONS)
+	public function setOptions(int $options = self::DEFAULT_OPTIONS)
 	{
 		$this->options = $options;
 		return $this;
@@ -359,9 +359,8 @@ class Schematron
 
 	/**
 	 * Returns processing options, {@link self::DEFAULT_OPTIONS}
-	 * @return int
 	 */
-	public function getOptions()
+	public function getOptions(): int
 	{
 		return $this->options;
 	}
@@ -370,9 +369,8 @@ class Schematron
 
 	/**
 	 * Has been schema loaded?
-	 * @return bool
 	 */
-	public function isLoaded()
+	public function isLoaded(): bool
 	{
 		return $this->loaded;
 	}
@@ -382,9 +380,9 @@ class Schematron
 	/**
 	 * Set which URIa are allowed for <sch:include> (self::INCLUDE_*)
 	 * @param  int  mask of types
-	 * @return self
+	 * @return static
 	 */
-	public function setAllowedInclude($mask)
+	public function setAllowedInclude(int $mask)
 	{
 		$this->allowedInclude = $mask;
 		return $this;
@@ -394,9 +392,8 @@ class Schematron
 
 	/**
 	 * Returns which URIa are allowed for <sch:include> (self::INCLUDE_*)
-	 * @return int
 	 */
-	public function getAllowedInclude()
+	public function getAllowedInclude(): int
 	{
 		return $this->allowedInclude;
 	}
@@ -405,10 +402,10 @@ class Schematron
 
 	/**
 	 * Sets how deep can be <sch:include> in <sch:include> in <sch:include> ...
-	 * @param  int  depth
-	 * @return self
+	 * @param  int $depth  depth
+	 * @return static
 	 */
-	public function setMaxIncludeDepth($depth)
+	public function setMaxIncludeDepth(int $depth)
 	{
 		$this->maxIncludeDepth = (int) $depth;
 		return $this;
@@ -418,10 +415,8 @@ class Schematron
 
 	/**
 	 * Returns how deep can be <sch:include> in <sch:include> in <sch:include> ...
-	 * @param  int  depth
-	 * @return self
 	 */
-	public function getMaxIncludeDepth()
+	public function getMaxIncludeDepth(): int
 	{
 		return $this->maxIncludeDepth;
 	}
@@ -430,11 +425,11 @@ class Schematron
 
 	/**
 	 * Sets include directory path for relative file paths in <sch:include>
-	 * @param  string  directory path
-	 * @return self
+	 * @param  string $dir  directory path
+	 * @return static
 	 * @throws RuntimeException  when directory does not exist
 	 */
-	public function setIncludeDir($dir)
+	public function setIncludeDir(string $dir)
 	{
 		if (!is_dir($dir)) {
 			throw new RuntimeException("Directory '$dir' does not exist.");
@@ -448,9 +443,8 @@ class Schematron
 
 	/**
 	 * Returns path to directory which is used for relative file paths from <sch:include>
-	 * @return string|null
 	 */
-	public function getIncludeDir()
+	public function getIncludeDir(): ?string
 	{
 		return $this->directory;
 	}
@@ -460,12 +454,12 @@ class Schematron
 	/* ~~~ Schematron schema loading part ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 	/**
 	 * Expands all <sch:include> in DOM.
-	 * @param  DOMElement
-	 * @param  int  include depth level
+	 * @param  DOMDocument $schema
+	 * @param  int $depth  include depth level
 	 * @throws SchematronException
 	 * @throws RuntimeException  when applied any include restriction
 	 */
-	protected function expandIncludes(DOMDocument $schema, $depth = 0)
+	protected function expandIncludes(DOMDocument $schema, int $depth = 0): void
 	{
 		if ($this->options & self::IGNORE_INCLUDE) {
 			return;
@@ -523,7 +517,7 @@ class Schematron
 	 * Fills object members by basics schema properties.
 	 * @throws SchematronException
 	 */
-	protected function loadSchemaBasics(DOMDocument $schema)
+	protected function loadSchemaBasics(DOMDocument $schema): void
 	{
 		$list = $this->xPath->query('//sch:schema', $schema);
 		if ($list->length > 1) {
@@ -557,7 +551,7 @@ class Schematron
 	 * @return array[string prefix => string URI]
 	 * @throws SchematronException
 	 */
-	protected function findNamespaces(DOMDocument $schema)
+	protected function findNamespaces(DOMDocument $schema): array
 	{
 		$namespaces = $elements = [];
 		foreach ($this->xPath->query('//sch:ns', $schema) as $element) {
@@ -581,7 +575,7 @@ class Schematron
 	 * @return stdClass[]
 	 * @throws SchematronException
 	 */
-	protected function findPatterns(DOMDocument $schema)
+	protected function findPatterns(DOMDocument $schema): array
 	{
 		$abstracts = $this->findPatternAbstracts($schema);
 
@@ -624,7 +618,7 @@ class Schematron
 	 * @return array[id => stdClass]
 	 * @throws SchematronException
 	 */
-	protected function findPatternAbstracts(DOMDocument $schema)
+	protected function findPatternAbstracts(DOMDocument $schema): array
 	{
 		$patterns = [];
 		foreach ($this->xPath->query('//sch:pattern[@abstract="true"]', $schema) as $element) {
@@ -653,7 +647,7 @@ class Schematron
 	 * Returns callable for replacing parameters in XPath expressions.
 	 * @return  callable(string $expression, array $parameters)
 	 */
-	protected function getReplaceCb()
+	protected function getReplaceCb(): callable
 	{
 		static $replaceCb;
 
@@ -673,11 +667,11 @@ class Schematron
 
 	/**
 	 * Creates pattern instance from abstract pattern.
-	 * @param  stdClass  abstract pattern
-	 * @param  array[name => value]  parameters
+	 * @param  stdClass $abstract  abstract pattern
+	 * @param  array $parameters  [name => value] parameters
 	 * @return stdClass
 	 */
-	private function instantiatePattern(stdClass $abstract, array $parameters)
+	private function instantiatePattern(stdClass $abstract, array $parameters): stdClass
 	{
 		$instance = clone $abstract;
 		foreach ($instance->rules as & $rule) {
@@ -698,7 +692,7 @@ class Schematron
 	 * @return array[string name => string value]
 	 * @throws SchematronException
 	 */
-	protected function findParams(DOMElement $pattern)
+	protected function findParams(DOMElement $pattern): array
 	{
 		$params = $elements = [];
 		foreach ($this->xPath->query('sch:param', $pattern) as $element) {
@@ -722,7 +716,7 @@ class Schematron
 	 * @return stdClass[]
 	 * @throws SchematronException
 	 */
-	protected function findRules(DOMElement $pattern)
+	protected function findRules(DOMElement $pattern): array
 	{
 		$abstracts = $this->findRuleAbstracts($pattern);
 
@@ -754,7 +748,7 @@ class Schematron
 	 * @return stdClass[]
 	 * @throws SchematronException
 	 */
-	protected function findRuleAbstracts(DOMElement $pattern)
+	protected function findRuleAbstracts(DOMElement $pattern): array
 	{
 		$rules = [];
 		foreach ($this->xPath->query('sch:rule[@abstract="true"]', $pattern) as $element) {
@@ -777,7 +771,7 @@ class Schematron
 	 * @return stdClass[]
 	 * @throws SchematronException
 	 */
-	protected function findStatements(DOMElement $rule, array $abstractRules = [])
+	protected function findStatements(DOMElement $rule, array $abstractRules = []): array
 	{
 		$statements = [];
 		foreach ($this->xPath->query('sch:assert | sch:report | sch:extends', $rule) as $node) {
@@ -807,7 +801,7 @@ class Schematron
 	 * @return array[id => array[idPattern]]
 	 * @throws SchematronException
 	 */
-	protected function findPhases(DOMDocument $schema)
+	protected function findPhases(DOMDocument $schema): array
 	{
 		$phases = $elements = [];
 		foreach ($this->xPath->query('//sch:phase', $schema) as $element) {
@@ -833,7 +827,7 @@ class Schematron
 	 * @return string[]  list of <sch:pattern> IDs
 	 * @throws SchematronException
 	 */
-	protected function findActives(DOMElement $phase)
+	protected function findActives(DOMElement $phase): array
 	{
 		$actives = [];
 		foreach ($this->xPath->query('sch:active', $phase) as $element) {
@@ -850,9 +844,8 @@ class Schematron
 
 	/**
 	 * Expands <sch:name> and <sch:value-of> in assertion/report message.
-	 * @return string
 	 */
-	protected function statementToMessage(DOMElement $stmt, SchematronXPath $xPath, DOMNode $current)
+	protected function statementToMessage(DOMElement $stmt, SchematronXPath $xPath, DOMNode $current): string
 	{
 		$message = '';
 		foreach ($stmt->childNodes as $node) {
@@ -882,9 +875,8 @@ class Schematron
 
 	/**
 	 * Detects include URI type.
-	 * @return int
 	 */
-	protected static function detectIncludeType($uri, & $typeStr = null)
+	protected static function detectIncludeType(string $uri, string &$typeStr = null): int
 	{
 		$absolutePathRe = substr_compare(PHP_OS, 'WIN', 0, 3, true) === 0
 			? '#^[A-Z]:#i'
@@ -925,7 +917,7 @@ class SchematronHelpers
 	 * Enable LibXML internal error handling.
 	 * @param  bool  clear existing errors
 	 */
-	public static function handleXmlErrors($clear = true)
+	public static function handleXmlErrors(bool $clear = true): void
 	{
 		self::$handleXmlErrors[] = libxml_use_internal_errors(true);
 		$clear && libxml_clear_errors();
@@ -938,7 +930,7 @@ class SchematronHelpers
 	 * @param  bool
 	 * @return null|ErrorException  all errors chained in exceptions
 	 */
-	public static function fetchXmlErrors($restoreHandling = true)
+	public static function fetchXmlErrors(bool $restoreHandling = true): ?ErrorException
 	{
 		$e = null;
 		foreach (array_reverse(libxml_get_errors()) as $error) {
@@ -954,7 +946,7 @@ class SchematronHelpers
 	/**
 	 * Restore LibXML internal error handling previously enabled by self::handleXmlErrors()
 	 */
-	public static function restoreErrorHandling()
+	public static function restoreErrorHandling(): void
 	{
 		libxml_use_internal_errors(array_pop(self::$handleXmlErrors));
 	}
@@ -963,13 +955,12 @@ class SchematronHelpers
 
 	/**
 	 * Returns value of element attribute.
-	 * @param  DOMElement
-	 * @param  string  attribute name
-	 * @param  mixed  default value if attribude does not exist
+	 * @param  DOMElement $element
+	 * @param  string $name  attribute name
 	 * @return mixed
 	 * @throws SchematronException  when attribute does not exist and default value is not specified
 	 */
-	public static function getAttribute(DOMElement $element, $name)
+	public static function getAttribute(DOMElement $element, string $name)
 	{
 		if ($element->hasAttribute($name)) {
 			return $element->getAttribute($name);
