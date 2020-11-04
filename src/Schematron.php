@@ -116,7 +116,7 @@ class Schematron
 
 
 	/** XPath class used in this class */
-	public static $xPathClass = 'Milo\SchematronXPath';
+	public static $xPathClass = SchematronXPath::class;
 
 	/** @var bool  schema has been loaded */
 	private $loaded = false;

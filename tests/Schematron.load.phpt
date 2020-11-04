@@ -17,7 +17,7 @@ define('SRC_DIR', __DIR__ . '/resources');
 
 Assert::exception(function() {
 	new Schematron('unknown:namespace');
-}, 'InvalidArgumentException', "Unsupported schema namespace 'unknown:namespace'.");
+}, InvalidArgumentException::class, "Unsupported schema namespace 'unknown:namespace'.");
 
 
 
@@ -25,11 +25,11 @@ Assert::exception(function() {
 $sch = new Schematron;
 $e = Assert::exception(function() use ($sch) {
 	$sch->load(SRC_DIR . '/empty.xml');
-}, 'Milo\SchematronException', "Cannot load schema from file '%a%/empty.xml'.");
+}, Milo\SchematronException::class, "Cannot load schema from file '%a%/empty.xml'.");
 
 Assert::exception(function() use ($e) {
 	throw $e->getPrevious();
-}, 'ErrorException', 'Document is empty');
+}, ErrorException::class, 'Document is empty');
 
 
 
@@ -45,7 +45,7 @@ Assert::same( 'Schema Title', $sch->getSchemaTitle() );
 $sch = new Schematron;
 Assert::exception(function() use ($sch) {
 	$sch->load(SRC_DIR . '/bad-binding.xml');
-}, 'Milo\SchematronException', "Query binding 'unknown' is not supported.");
+}, Milo\SchematronException::class, "Query binding 'unknown' is not supported.");
 
 
 
@@ -53,7 +53,7 @@ Assert::exception(function() use ($sch) {
 $sch = new Schematron;
 Assert::exception(function() use ($sch) {
 	$sch->load(SRC_DIR . '/multiple-schema.xml');
-}, 'Milo\SchematronException', 'Only one <schema> element in document is allowed, but 2 found.');
+}, Milo\SchematronException::class, 'Only one <schema> element in document is allowed, but 2 found.');
 
 
 
@@ -61,7 +61,7 @@ Assert::exception(function() use ($sch) {
 $sch = new Schematron;
 Assert::exception(function() use ($sch) {
 	$sch->load(SRC_DIR . '/no-schema.xml');
-}, 'Milo\SchematronException', '<schema> element not found.');
+}, Milo\SchematronException::class, '<schema> element not found.');
 
 $sch->setOptions(Schematron::ALLOW_MISSING_SCHEMA_ELEMENT);
 $sch->load(SRC_DIR . '/no-schema.xml');
@@ -72,7 +72,7 @@ $sch->load(SRC_DIR . '/no-schema.xml');
 $sch = new Schematron;
 Assert::exception(function() use ($sch) {
 	$sch->load(SRC_DIR . '/empty-schema.xml');
-}, 'Milo\SchematronException', 'None <sch:pattern> found in schema.');
+}, Milo\SchematronException::class, 'None <sch:pattern> found in schema.');
 
 $sch->setOptions(Schematron::ALLOW_EMPTY_SCHEMA);
 $sch->load(SRC_DIR . '/empty-schema.xml');
@@ -83,7 +83,7 @@ $sch->load(SRC_DIR . '/empty-schema.xml');
 $sch = new Schematron;
 Assert::exception(function() use ($sch) {
 	$sch->load(SRC_DIR . '/empty-pattern.xml');
-}, 'Milo\SchematronException', 'Missing rules for <pattern> on line 2.');
+}, Milo\SchematronException::class, 'Missing rules for <pattern> on line 2.');
 
 $sch->setOptions(Schematron::ALLOW_EMPTY_PATTERN);
 $sch->load(SRC_DIR . '/empty-pattern.xml');
@@ -94,7 +94,7 @@ $sch->load(SRC_DIR . '/empty-pattern.xml');
 $sch = new Schematron;
 Assert::exception(function() use ($sch) {
 	$sch->load(SRC_DIR . '/empty-rule.xml');
-}, 'Milo\SchematronException', 'Asserts nor reports not found for <rule> on line 3.');
+}, Milo\SchematronException::class, 'Asserts nor reports not found for <rule> on line 3.');
 
 $sch->setOptions(Schematron::ALLOW_EMPTY_RULE);
 $sch->load(SRC_DIR . '/empty-rule.xml');
@@ -108,26 +108,26 @@ $sch->load(SRC_DIR . '/include.xml');
 $sch->setMaxIncludeDepth(-1);
 Assert::exception(function() use ($sch) {
 	$sch->load(SRC_DIR . '/include.xml');
-}, 'RuntimeException', "Reached maximum (-1) include depth.");
+}, RuntimeException::class, "Reached maximum (-1) include depth.");
 
 
 $sch = new Schematron;
 $sch->setAllowedInclude(0);
 Assert::exception(function() use ($sch) {
 	$sch->load(SRC_DIR . '/include.xml');
-}, 'RuntimeException', "Including URI of type 'Relative file path' referenced by <include> on line 4 is not allowed.");
+}, RuntimeException::class, "Including URI of type 'Relative file path' referenced by <include> on line 4 is not allowed.");
 
 
 $sch->setOptions(Schematron::FORBID_INCLUDE);
 Assert::exception(function() use ($sch) {
 	$sch->load(SRC_DIR . '/include.xml');
-}, 'RuntimeException', 'Include functionality is disabled. Found 1 <include> elements, first on line 4.');
+}, RuntimeException::class, 'Include functionality is disabled. Found 1 <include> elements, first on line 4.');
 
 
 $sch->setOptions(Schematron::IGNORE_INCLUDE);
 Assert::exception(function() use ($sch) {
 	$sch->load(SRC_DIR . '/include.xml');
-}, 'Milo\SchematronException', 'Asserts nor reports not found for <rule> on line 3.');
+}, Milo\SchematronException::class, 'Asserts nor reports not found for <rule> on line 3.');
 
 
 $dom = new DOMDocument;
@@ -135,7 +135,7 @@ $dom->load(SRC_DIR . '/include.xml');
 $sch = new Schematron;
 Assert::exception(function() use ($sch, $dom) {
 	$sch->loadDom($dom);
-}, 'RuntimeException', "Cannot evaluate relative URI 'include-assert.xml' referenced by <include> on line 4, schema has not been loaded from file. Set schema directory by setIncludeDir() method.");
+}, RuntimeException::class, "Cannot evaluate relative URI 'include-assert.xml' referenced by <include> on line 4, schema has not been loaded from file. Set schema directory by setIncludeDir() method.");
 
 
 
@@ -143,7 +143,7 @@ Assert::exception(function() use ($sch, $dom) {
 $sch = new Schematron;
 Assert::exception(function() use ($sch) {
 	$sch->load(SRC_DIR . '/duplicate-ns.xml');
-}, 'Milo\SchematronException', "Namespace prefix 'one' on line 3 is alredy declared on line 2.");
+}, Milo\SchematronException::class, "Namespace prefix 'one' on line 3 is alredy declared on line 2.");
 
 
 
@@ -192,5 +192,5 @@ $messages = [
 foreach ($messages as $file => $message) {
 	Assert::exception(function() use ($sch, $file) {
 		$sch->load(SRC_DIR . '/' . $file);
-	}, 'Milo\SchematronException', $message);
+	}, Milo\SchematronException::class, $message);
 }

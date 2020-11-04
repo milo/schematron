@@ -22,7 +22,7 @@ $doc->load(SRC_DIR . '/validate-document.xml');
 Assert::false($sch->isLoaded());
 Assert::exception(function() use ($sch, $doc) {
 	$sch->validate($doc);
-}, 'RuntimeException', 'Schema has not been loaded yet. Load it before validation.');
+}, RuntimeException::class, 'Schema has not been loaded yet. Load it before validation.');
 
 $sch->load(SRC_DIR . '/validate-schema.xml');
 Assert::true($sch->isLoaded());
@@ -55,7 +55,7 @@ Assert::same(reset($complex)->title, 'Pattern 1');
 # RESULT_EXCEPTION
 Assert::exception(function() use ($sch, $doc) {
 	$sch->validate($doc, $sch::RESULT_EXCEPTION);
-}, 'Milo\SchematronException', reset($simple));
+}, Milo\SchematronException::class, reset($simple));
 
 
 
@@ -64,4 +64,4 @@ Assert::same(['S15 - fail'], $sch->validate($doc, $sch::RESULT_SIMPLE, 'phase-1'
 
 Assert::exception(function() use ($sch, $doc) {
 	$sch->validate($doc, $sch::RESULT_SIMPLE, 'phase-undefined');
-}, 'InvalidArgumentException', "Validation phase 'phase-undefined' is not defined.");
+}, InvalidArgumentException::class, "Validation phase 'phase-undefined' is not defined.");

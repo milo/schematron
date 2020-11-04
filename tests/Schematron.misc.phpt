@@ -22,7 +22,7 @@ Assert::same(10, $sch->getMaxIncludeDepth());
 
 Assert::exception(function() use ($sch) {
 	$sch->setIncludeDir(__DIR__ . '/-not-exists-');
-}, 'RuntimeException', "Directory '%a%' does not exist.");
+}, RuntimeException::class, "Directory '%a%' does not exist.");
 
 Assert::same($sch, $sch->setIncludeDir(__DIR__));
 
