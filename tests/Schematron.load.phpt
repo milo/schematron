@@ -149,7 +149,7 @@ Assert::exception(function() use ($sch) {
 
 # Required attributes or their combination
 $sch = new Schematron;
-$messages = array(
+$messages = [
 	# <ns> attributes
 	'ns-missing-prefix.xml' => "Missing required attribute 'prefix' for element <ns> on line 2.",
 	'ns-missing-uri.xml' => "Missing required attribute 'uri' for element <ns> on line 2.",
@@ -188,7 +188,7 @@ $messages = array(
 	# <active>
 	'active-missing-pattern.xml' => "Missing required attribute 'pattern' for element <active> on line 3.",
 	'active-bad-pattern-ref.xml' => "<active> on line 3 references to undefined pattern by ID 'invalid'.",
-);
+];
 foreach ($messages as $file => $message) {
 	Assert::exception(function() use ($sch, $file) {
 		$sch->load(SRC_DIR . '/' . $file);

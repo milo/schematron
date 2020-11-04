@@ -29,7 +29,7 @@ Assert::true($sch->isLoaded());
 
 
 # RESULT_SIMPLE
-$simple = array(
+$simple = [
 	'S5 - fail',
 	'S6 - fail',
 	'S7 - fail',
@@ -40,7 +40,7 @@ $simple = array(
 	'S13 - fail - milo',
 	'S14 - fail - name',
 	'S15 - fail',
-);
+];
 Assert::same($simple, $sch->validate($doc));
 
 
@@ -60,7 +60,7 @@ Assert::exception(function() use ($sch, $doc) {
 
 
 # <phase>
-Assert::same(array('S15 - fail'), $sch->validate($doc, $sch::RESULT_SIMPLE, 'phase-1'));
+Assert::same(['S15 - fail'], $sch->validate($doc, $sch::RESULT_SIMPLE, 'phase-1'));
 
 Assert::exception(function() use ($sch, $doc) {
 	$sch->validate($doc, $sch::RESULT_SIMPLE, 'phase-undefined');

@@ -153,13 +153,13 @@ class Schematron
 	protected $xPath;
 
 	/** @var array[prefix => URI]  loaded from <sch:ns> */
-	protected $namespaces = array();
+	protected $namespaces = [];
 
 	/** @var stdClass[]  {@see self::findPatterns()} */
-	protected $patterns = array();
+	protected $patterns = [];
 
 	/** @var array[id => value]  {@see self::findPhases()} */
-	protected $phases = array();
+	protected $phases = [];
 
 
 
@@ -170,7 +170,7 @@ class Schematron
 	 */
 	public function __construct($namespace = self::NS_DETECT)
 	{
-		if (!in_array($namespace, array(self::NS_DETECT, self::NS_ISO, self::NS_1_5), true)) {
+		if (!in_array($namespace, [self::NS_DETECT, self::NS_ISO, self::NS_1_5], true)) {
 			throw new InvalidArgumentException("Unsupported schema namespace '$namespace'.");
 		}
 
@@ -272,7 +272,7 @@ class Schematron
 			$activePatternKeys = array_keys($this->phases[$phase]);
 		}
 
-		$return = array();
+		$return = [];
 		foreach ($activePatternKeys as $patternKey) {
 			$pattern = $this->patterns[$patternKey];
 			foreach ($pattern->rules as $ruleKey => $rule) {
@@ -287,24 +287,24 @@ class Schematron
 
 								case self::RESULT_COMPLEX:
 									if (!isset($return[$patternKey])) {
-										$return[$patternKey] = (object) array(
+										$return[$patternKey] = (object) [
 											'title' => $pattern->title,
-											'rules' => array(),
-										);
+											'rules' => [],
+										];
 									}
 
 									if (!isset($return[$patternKey]->rules[$ruleKey])) {
-										$return[$patternKey]->rules[$ruleKey] = (object) array(
+										$return[$patternKey]->rules[$ruleKey] = (object) [
 											'context' => $rule->context,
-											'errors' => array(),
-										);
+											'errors' => [],
+										];
 									}
 
-									$return[$patternKey]->rules[$ruleKey]->errors[] = (object) array(
+									$return[$patternKey]->rules[$ruleKey]->errors[] = (object) [
 										'test' => $statement->test,
 										'message' => $message,
 										'path' => $currentNode->getNodePath(),
-									);
+									];
 									break;
 
 								default:
@@ -559,7 +559,7 @@ class Schematron
 	 */
 	protected function findNamespaces(DOMDocument $schema)
 	{
-		$namespaces = $elements = array();
+		$namespaces = $elements = [];
 		foreach ($this->xPath->query('//sch:ns', $schema) as $element) {
 			$prefix = Helpers::getAttribute($element, 'prefix');
 			$uri = Helpers::getAttribute($element, 'uri');
@@ -585,7 +585,7 @@ class Schematron
 	{
 		$abstracts = $this->findPatternAbstracts($schema);
 
-		$patterns = array();
+		$patterns = [];
 		foreach ($this->xPath->query('//sch:pattern[not(@abstract) or @abstract!="true"]', $schema) as $element) {
 			if (($isA = Helpers::getAttribute($element, 'is-a', null)) !== null) {
 				if (!array_key_exists($isA, $abstracts)) {
@@ -594,12 +594,12 @@ class Schematron
 				$pattern = $this->instantiatePattern($abstracts[$isA], $this->findParams($element));
 
 			} else {
-				$pattern = (object) array(
+				$pattern = (object) [
 					'title' => $this->xPath->evaluate('boolean(sch:title)', $element)
 						? $this->xPath->evaluate('string(sch:title)', $element)
 						: Helpers::getAttribute($element, 'name', null), // Schematron v1.5
 					'rules' => $rules = $this->findRules($element),
-				);
+				];
 
 				if (!count($rules) && !($this->options & self::ALLOW_EMPTY_PATTERN)) {
 					throw new SchematronException("Missing rules for <$element->nodeName> on line {$element->getLineNo()}.");
@@ -626,19 +626,19 @@ class Schematron
 	 */
 	protected function findPatternAbstracts(DOMDocument $schema)
 	{
-		$patterns = array();
+		$patterns = [];
 		foreach ($this->xPath->query('//sch:pattern[@abstract="true"]', $schema) as $element) {
 			if ($element->hasAttribute('is-a')) {
 				throw new SchematronException("An abstract <$element->nodeName> on line {$element->getLineNo()} shall not have a 'is-a' attribute.");
 			}
 
 			$id = Helpers::getAttribute($element, 'id');
-			$patterns[$id] = (object) array(
+			$patterns[$id] = (object) [
 				'title' => $this->xPath->evaluate('boolean(sch:title)', $element)
 					? $this->xPath->evaluate('string(sch:title)', $element)
 					: Helpers::getAttribute($element, 'name', null), // Schematron v1.5
 				'rules' => $rules = $this->findRules($element),
-			);
+			];
 
 			if (!count($rules) && !($this->options & self::ALLOW_EMPTY_PATTERN)) {
 				throw new SchematronException("Missing rules for <$element->nodeName> on line {$element->getLineNo()}.");
@@ -700,7 +700,7 @@ class Schematron
 	 */
 	protected function findParams(DOMElement $pattern)
 	{
-		$params = $elements = array();
+		$params = $elements = [];
 		foreach ($this->xPath->query('sch:param', $pattern) as $element) {
 			$name = Helpers::getAttribute($element, 'name');
 			$value = Helpers::getAttribute($element, 'value');
@@ -726,7 +726,7 @@ class Schematron
 	{
 		$abstracts = $this->findRuleAbstracts($pattern);
 
-		$rules = $contexts = array();
+		$rules = $contexts = [];
 		foreach ($this->xPath->query('sch:rule[not(@abstract) or @abstract!="true"]', $pattern) as $element) {
 			$context = Helpers::getAttribute($element, 'context');
 
@@ -735,10 +735,10 @@ class Schematron
 			}
 			$contexts[$context] = true;
 
-			$rules[] = (object) array(
+			$rules[] = (object) [
 				'context' => $context,
 				'statements' => $statements = $this->findStatements($element, $abstracts),
-			);
+			];
 
 			if (!count($statements) && !($this->options & self::ALLOW_EMPTY_RULE)) {
 				throw new SchematronException("Asserts nor reports not found for <$element->nodeName> on line {$element->getLineNo()}.");
@@ -756,16 +756,16 @@ class Schematron
 	 */
 	protected function findRuleAbstracts(DOMElement $pattern)
 	{
-		$rules = array();
+		$rules = [];
 		foreach ($this->xPath->query('sch:rule[@abstract="true"]', $pattern) as $element) {
 			$id = Helpers::getAttribute($element, 'id');
 			if ($element->hasAttribute('context')) {
 				throw new SchematronException("An abstract rule on line {$element->getLineNo()} shall not have a 'context' attribute.");
 			}
 
-			$rules[$id] = (object) array(
+			$rules[$id] = (object) [
 				'statements' => $this->findStatements($element),
-			);
+			];
 		}
 		return $rules;
 	}
@@ -777,9 +777,9 @@ class Schematron
 	 * @return stdClass[]
 	 * @throws SchematronException
 	 */
-	protected function findStatements(DOMElement $rule, array $abstractRules = array())
+	protected function findStatements(DOMElement $rule, array $abstractRules = [])
 	{
-		$statements = array();
+		$statements = [];
 		foreach ($this->xPath->query('sch:assert | sch:report | sch:extends', $rule) as $node) {
 			if ($node->localName === 'extends') {
 				$idRule = Helpers::getAttribute($node, 'rule');
@@ -790,11 +790,11 @@ class Schematron
 				$statements = array_merge($statements, $abstractRules[$idRule]->statements);
 
 			} else {
-				$statements[] = (object) array(
+				$statements[] = (object) [
 					'test' => Helpers::getAttribute($node, 'test'),
 					'isAssert' => $node->localName === 'assert',
 					'node' => $node,
-				);
+				];
 			}
 		}
 		return $statements;
@@ -809,7 +809,7 @@ class Schematron
 	 */
 	protected function findPhases(DOMDocument $schema)
 	{
-		$phases = $elements = array();
+		$phases = $elements = [];
 		foreach ($this->xPath->query('//sch:phase', $schema) as $element) {
 			$id = Helpers::getAttribute($element, 'id');
 			if (isset($elements[$id])) {
@@ -835,7 +835,7 @@ class Schematron
 	 */
 	protected function findActives(DOMElement $phase)
 	{
-		$actives = array();
+		$actives = [];
 		foreach ($this->xPath->query('sch:active', $phase) as $element) {
 			$idPattern = Helpers::getAttribute($element, 'pattern');
 			if (!isset($this->patterns["#$idPattern"])) {
@@ -917,7 +917,7 @@ class Schematron
 class SchematronHelpers
 {
 	/** @var array */
-	private static $handleXmlErrors = array();
+	private static $handleXmlErrors = [];
 
 
 
