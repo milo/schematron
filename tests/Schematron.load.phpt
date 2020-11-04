@@ -6,8 +6,8 @@
  * @author  Miloslav Hůla
  */
 
-use Tester\Assert,
-	Milo\Schematron;
+use Milo\Schematron;
+use Tester\Assert;
 
 require __DIR__ . '/bootstrap.php';
 

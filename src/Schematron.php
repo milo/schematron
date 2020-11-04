@@ -2,18 +2,15 @@
 
 namespace Milo;
 
+use DOMDocument;
+use DOMElement;
+use DOMNode;
+use DOMXPath;
+use ErrorException;
+use InvalidArgumentException;
 use Milo\SchematronHelpers as Helpers;
-
-use DOMDocument,
-	DOMElement,
-	DOMNode,
-	DOMNodeList,
-	DOMXPath;
-
-use ErrorException,
-	InvalidArgumentException,
-	RuntimeException,
-	stdClass;
+use RuntimeException;
+use stdClass;
 
 
 
@@ -68,7 +65,7 @@ class Schematron
 
 	/** Namespace of supported schematron versions */
 	const
-		NS_DETECT = NULL,
+		NS_DETECT = null,
 		NS_ISO = 'http://purl.oclc.org/dsdl/schematron',
 		NS_1_5 = 'http://www.ascc.net/xml/schematron';
 
@@ -122,7 +119,7 @@ class Schematron
 	public static $xPathClass = 'Milo\SchematronXPath';
 
 	/** @var bool  schema has been loaded */
-	private $loaded = FALSE;
+	private $loaded = false;
 
 	/** @var int */
 	private $options = self::DEFAULT_OPTIONS;
@@ -130,22 +127,22 @@ class Schematron
 	/** @var string  schema namespace */
 	private $ns;
 
-	/** @var string|NULL  absolute path for <sch:include> relative paths */
+	/** @var string|null  absolute path for <sch:include> relative paths */
 	private $directory;
 
 	/** @var int  LibXML options which were used for schema loading */
 	private $domOptions;
 
-	/** @var string|NULL  loaded from @schemaVersion in <sch:schema> */
+	/** @var string|null  loaded from @schemaVersion in <sch:schema> */
 	private $version;
 
-	/** @var string|NULL  loaded from <sch:title> in <sch:schema> */
+	/** @var string|null  loaded from <sch:title> in <sch:schema> */
 	private $title;
 
 	/** @var string  default validation phase */
 	private $defaultPhase = self::PHASE_ALL;
 
-	/** @var int|FALSE|NULL  restrictions on <sch:include>; self::INCLUDE_* value/mask */
+	/** @var int|false|null  restrictions on <sch:include>; self::INCLUDE_* value/mask */
 	private $allowedInclude = self::INCLUDE_RELATIVE_PATH;
 
 	/** @var int  how deep can be <sch:include> */
@@ -173,7 +170,7 @@ class Schematron
 	 */
 	public function __construct($namespace = self::NS_DETECT)
 	{
-		if (!in_array($namespace, array(self::NS_DETECT, self::NS_ISO, self::NS_1_5), TRUE)) {
+		if (!in_array($namespace, array(self::NS_DETECT, self::NS_ISO, self::NS_1_5), true)) {
 			throw new InvalidArgumentException("Unsupported schema namespace '$namespace'.");
 		}
 
@@ -188,9 +185,9 @@ class Schematron
 	 * @param  int  LibXML options
 	 * @throws SchematronException  when schema loading fails
 	 */
-	public function load($file, $options = NULL)
+	public function load($file, $options = null)
 	{
-		$this->domOptions = $options === NULL ? (LIBXML_NOENT | LIBXML_NOBLANKS) : $options;
+		$this->domOptions = $options === null ? (LIBXML_NOENT | LIBXML_NOBLANKS) : $options;
 
 		$doc = new DOMDocument;
 		Helpers::handleXmlErrors();
@@ -235,7 +232,7 @@ class Schematron
 		}
 		$this->phases = $this->findPhases($schema);
 
-		$this->loaded = TRUE;
+		$this->loaded = true;
 
 		return $this;
 	}
@@ -327,7 +324,7 @@ class Schematron
 
 	/**
 	 * Returns version loaded from @schemaVersion on <sch:schema>
-	 * @return string|NULL
+	 * @return string|null
 	 */
 	public function getSchemaVersion()
 	{
@@ -338,7 +335,7 @@ class Schematron
 
 	/**
 	 * Returns title loaded from <sch:title> in <sch:schema>
-	 * @return string|NULL
+	 * @return string|null
 	 */
 	public function getSchemaTitle()
 	{
@@ -451,7 +448,7 @@ class Schematron
 
 	/**
 	 * Returns path to directory which is used for relative file paths from <sch:include>
-	 * @return string|NULL
+	 * @return string|null
 	 */
 	public function getIncludeDir()
 	{
@@ -487,7 +484,7 @@ class Schematron
 			$element = $list->item(0);
 
 			$href = $rawHref = Helpers::getAttribute($element, 'href');
-			if (substr_compare($href, 'file://', 0, 7, TRUE) === 0) {
+			if (substr_compare($href, 'file://', 0, 7, true) === 0) {
 				$href = substr($href, 7);
 			}
 
@@ -498,7 +495,7 @@ class Schematron
 			}
 
 			if ($type === self::INCLUDE_RELATIVE_PATH) {
-				if ($this->directory === NULL) {
+				if ($this->directory === null) {
 					throw new RuntimeException("Cannot evaluate relative URI '$rawHref' referenced by <$element->nodeName> on line {$element->getLineNo()}, schema has not been loaded from file. Set schema directory by setIncludeDir() method.");
 				}
 				$href = $this->directory . DIRECTORY_SEPARATOR . $href;
@@ -514,7 +511,7 @@ class Schematron
 			$this->expandIncludes($doc, $depth + 1);
 
 			$element->parentNode->replaceChild(
-				$schema->importNode($doc->documentElement, TRUE),
+				$schema->importNode($doc->documentElement, true),
 				$element
 			);
 		}
@@ -540,7 +537,7 @@ class Schematron
 		} else {
 			$element = $list->item(0);
 
-			$this->version = Helpers::getAttribute($element, 'schemaVersion', NULL);
+			$this->version = Helpers::getAttribute($element, 'schemaVersion', null);
 			$this->defaultPhase = Helpers::getAttribute($element, 'defaultPhase', self::PHASE_ALL);
 			if (strtolower($binding = Helpers::getAttribute($element, 'queryBinding', 'xslt')) !== 'xslt') {
 				throw new SchematronException("Query binding '$binding' is not supported.");
@@ -590,7 +587,7 @@ class Schematron
 
 		$patterns = array();
 		foreach ($this->xPath->query('//sch:pattern[not(@abstract) or @abstract!="true"]', $schema) as $element) {
-			if (($isA = Helpers::getAttribute($element, 'is-a', NULL)) !== NULL) {
+			if (($isA = Helpers::getAttribute($element, 'is-a', null)) !== null) {
 				if (!array_key_exists($isA, $abstracts)) {
 					throw new SchematronException("<$element->nodeName> on line {$element->getLineNo()} references to undefined abstract pattern by ID '$isA'.");
 				}
@@ -600,7 +597,7 @@ class Schematron
 				$pattern = (object) array(
 					'title' => $this->xPath->evaluate('boolean(sch:title)', $element)
 						? $this->xPath->evaluate('string(sch:title)', $element)
-						: Helpers::getAttribute($element, 'name', NULL), // Schematron v1.5
+						: Helpers::getAttribute($element, 'name', null), // Schematron v1.5
 					'rules' => $rules = $this->findRules($element),
 				);
 
@@ -608,9 +605,9 @@ class Schematron
 					throw new SchematronException("Missing rules for <$element->nodeName> on line {$element->getLineNo()}.");
 				}
 			}
-			$pattern->id = Helpers::getAttribute($element, 'id', NULL);
+			$pattern->id = Helpers::getAttribute($element, 'id', null);
 
-			if ($pattern->id === NULL) {
+			if ($pattern->id === null) {
 				$patterns[] = $pattern;
 			} else {
 				$patterns["#$pattern->id"] = $pattern;
@@ -623,7 +620,7 @@ class Schematron
 
 
 	/**
-	 * Search for all <sch:pattern abstract="TRUE">
+	 * Search for all <sch:pattern abstract="true">
 	 * @return array[id => stdClass]
 	 * @throws SchematronException
 	 */
@@ -639,7 +636,7 @@ class Schematron
 			$patterns[$id] = (object) array(
 				'title' => $this->xPath->evaluate('boolean(sch:title)', $element)
 					? $this->xPath->evaluate('string(sch:title)', $element)
-					: Helpers::getAttribute($element, 'name', NULL), // Schematron v1.5
+					: Helpers::getAttribute($element, 'name', null), // Schematron v1.5
 				'rules' => $rules = $this->findRules($element),
 			);
 
@@ -660,7 +657,7 @@ class Schematron
 	{
 		static $replaceCb;
 
-		if ($replaceCb === NULL) {
+		if ($replaceCb === null) {
 			$replaceCb = function ($expression, $parameters) {
 				foreach ($parameters as $name => $value) {
 					$expression = str_replace("\$$name", $value, $expression);
@@ -736,7 +733,7 @@ class Schematron
 			if (array_key_exists($context, $contexts) && ($this->options & self::SKIP_DUPLICIT_RULE_CONTEXT)) {
 				continue;
 			}
-			$contexts[$context] = TRUE;
+			$contexts[$context] = true;
 
 			$rules[] = (object) array(
 				'context' => $context,
@@ -753,7 +750,7 @@ class Schematron
 
 
 	/**
-	 * Search for all <sch:rule abstract="TRUE">.
+	 * Search for all <sch:rule abstract="true">.
 	 * @return stdClass[]
 	 * @throws SchematronException
 	 */
@@ -887,9 +884,9 @@ class Schematron
 	 * Detects include URI type.
 	 * @return int
 	 */
-	protected static function detectIncludeType($uri, & $typeStr = NULL)
+	protected static function detectIncludeType($uri, & $typeStr = null)
 	{
-		$absolutePathRe = substr_compare(PHP_OS, 'WIN', 0, 3, TRUE) === 0
+		$absolutePathRe = substr_compare(PHP_OS, 'WIN', 0, 3, true) === 0
 			? '#^[A-Z]:#i'
 			: '#^/#';
 
@@ -908,7 +905,6 @@ class Schematron
 
 		return $type;
 	}
-
 }
 
 
@@ -929,9 +925,9 @@ class SchematronHelpers
 	 * Enable LibXML internal error handling.
 	 * @param  bool  clear existing errors
 	 */
-	public static function handleXmlErrors($clear = TRUE)
+	public static function handleXmlErrors($clear = true)
 	{
-		self::$handleXmlErrors[] = libxml_use_internal_errors(TRUE);
+		self::$handleXmlErrors[] = libxml_use_internal_errors(true);
 		$clear && libxml_clear_errors();
 	}
 
@@ -940,11 +936,11 @@ class SchematronHelpers
 	/**
 	 * Fetch all LibXML errors.
 	 * @param  bool
-	 * @return NULL|ErrorException  all errors chained in exceptions
+	 * @return null|ErrorException  all errors chained in exceptions
 	 */
-	public static function fetchXmlErrors($restoreHandling = TRUE)
+	public static function fetchXmlErrors($restoreHandling = true)
 	{
-		$e = NULL;
+		$e = null;
 		foreach (array_reverse(libxml_get_errors()) as $error) {
 			$e = new ErrorException(trim($error->message), $error->code, $error->level, $error->file, $error->line, $e);
 		}
@@ -984,7 +980,6 @@ class SchematronHelpers
 
 		throw new SchematronException("Missing required attribute '$name' for element <$element->nodeName> on line {$element->getLineNo()}.");
 	}
-
 }
 
 
@@ -997,9 +992,9 @@ class SchematronHelpers
 class SchematronXPath extends DOMXPath
 {
 	/**
-	 * ($registerNodeNS is FALSE in opposition to DOMXPath default value)
+	 * ($registerNodeNS is false in opposition to DOMXPath default value)
 	 */
-	public function query($expression, DOMNode $context = NULL, $registerNodeNS = FALSE)
+	public function query($expression, DOMNode $context = null, $registerNodeNS = false)
 	{
 		return parent::query($expression, $context, $registerNodeNS);
 	}
@@ -1007,23 +1002,22 @@ class SchematronXPath extends DOMXPath
 
 
 	/**
-	 * ($registerNodeNS is FALSE in opposition to DOMXPath default value)
+	 * ($registerNodeNS is false in opposition to DOMXPath default value)
 	 */
-	public function evaluate($expression, DOMNode $context = NULL, $registerNodeNS = FALSE)
+	public function evaluate($expression, DOMNode $context = null, $registerNodeNS = false)
 	{
 		return parent::evaluate($expression, $context, $registerNodeNS);
 	}
 
 
 
-	public function queryContext($expression, DOMNode $context = NULL, $registerNodeNS = FALSE)
+	public function queryContext($expression, DOMNode $context = null, $registerNodeNS = false)
 	{
 		if (isset($expression[0]) && $expression[0] !== '.' && $expression[0] !== '/') {
 			$expression = "//$expression";
 		}
 		return $this->query($expression, $context, $registerNodeNS);
 	}
-
 }
 
 
