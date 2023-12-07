@@ -7,7 +7,6 @@ use Milo\SchematronHelpers as Helpers;
 use DOMDocument,
 	DOMElement,
 	DOMNode,
-	DOMNodeList,
 	DOMXPath;
 
 use ErrorException,
@@ -999,7 +998,7 @@ class SchematronXPath extends DOMXPath
 	/**
 	 * ($registerNodeNS is FALSE in opposition to DOMXPath default value)
 	 */
-	public function query($expression, DOMNode $context = NULL, $registerNodeNS = FALSE)
+	public function query($expression, DOMNode $context = NULL, $registerNodeNS = FALSE): mixed
 	{
 		return parent::query($expression, $context, $registerNodeNS);
 	}
@@ -1009,7 +1008,7 @@ class SchematronXPath extends DOMXPath
 	/**
 	 * ($registerNodeNS is FALSE in opposition to DOMXPath default value)
 	 */
-	public function evaluate($expression, DOMNode $context = NULL, $registerNodeNS = FALSE)
+	public function evaluate($expression, DOMNode $context = NULL, $registerNodeNS = FALSE): mixed
 	{
 		return parent::evaluate($expression, $context, $registerNodeNS);
 	}

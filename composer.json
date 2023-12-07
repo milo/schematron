@@ -14,9 +14,12 @@
 		"ext-dom": "*"
 	},
 	"require-dev": {
-		"nette/tester": "~1.1.0"
+		"nette/tester": "^2.5"
 	},
 	"autoload": {
 		"classmap": ["src/Schematron.php"]
-	}
+	},
+	"scripts": {
+        "test": "vendor/bin/tester -s tests"
+    }
 }
