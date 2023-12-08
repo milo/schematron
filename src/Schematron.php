@@ -7,7 +7,6 @@ use Milo\SchematronHelpers as Helpers;
 use DOMDocument,
 	DOMElement,
 	DOMNode,
-	DOMNodeList,
 	DOMXPath;
 
 use ErrorException,
@@ -164,6 +163,9 @@ class Schematron
 	/** @var array[id => value]  {@see self::findPhases()} */
 	protected $phases = array();
 
+    /* var array list of opened external DOMDOCUMENT and Xpath (to support document() in xpath ) */
+    protected $externals = [];
+
 
 
 
@@ -280,9 +282,47 @@ class Schematron
 			$pattern = $this->patterns[$patternKey];
 			foreach ($pattern->rules as $ruleKey => $rule) {
 				foreach ($xpath->queryContext($rule->context, $doc) as $currentNode) {
+                    $lets = [];
+                    if ($rule->lets) {
+                        foreach ($rule->lets as $name => $value) {
+                            $let = $xpath->evaluate("string($value)", $currentNode);
+                            // Adding quotes is necessary to be able search strings
+							// TODO : maybe escape?
+							$lets[$name] = is_numeric($let) ? $let : "'$let'";
+                        }
+                    }
 					foreach ($rule->statements as $statement) {
-						if ($statement->isAssert ^ $xpath->evaluate("boolean($statement->test)", $currentNode)) {
-							$message = $this->statementToMessage($statement->node, $xpath, $currentNode);
+                        $testStatement = $statement->test ;
+                        $nodeToEval = $currentNode;
+                        $xpathToEval = $xpath;
+                        if ($lets) {
+                            $testStatement = call_user_func($this->getReplaceCb(), $testStatement, $lets);
+                        }
+                        // Added support to evaluate document()
+						// Maybe it should move to SchematronXPath, but we would have to deal with paths 
+						// as neither DOMDocument or XPATH holds information about the file, so is it really worth the trouble?
+                        $parts = explode('//', $testStatement);
+                        if (count($parts) == 2) {
+                            if ($parts[0]) {
+                                if (strpos($parts[0], 'document(') == 0) {
+                                    $file = substr($parts[0], 10, -2);
+                                    if (!isset($this->externals[$file])) {
+                                        $external = new DOMDocument();
+                                        $external->load($this->directory.DIRECTORY_SEPARATOR.$file);
+                                        $this->externals[$file] = [
+                                            'node' => $external,
+                                            'xpath' => new DOMXPath($external)
+                                        ];
+                                    }
+                                    $nodeToEval = $this->externals[$file]['node'];
+                                    $xpathToEval = $this->externals[$file]['xpath'];
+                                    $testStatement = "//".$parts[1];
+                                }
+                            }
+
+                        }
+						if ($statement->isAssert ^ $xpathToEval->evaluate("boolean($testStatement)", $nodeToEval)) {
+							$message = $this->statementToMessage($statement->node, $xpath, $currentNode, $lets);
 
 							switch ($result) {
 								case self::RESULT_EXCEPTION:
@@ -740,6 +780,7 @@ class Schematron
 
 			$rules[] = (object) array(
 				'context' => $context,
+                'lets' => $this->findLets($element),
 				'statements' => $statements = $this->findStatements($element, $abstracts),
 			);
 
@@ -849,13 +890,28 @@ class Schematron
 		return $actives;
 	}
 
+    /**
+     * Search for all <sch:let>.
+     * @return array
+     */
+    protected function findLets(DOMElement $rule)
+    {
+        $variables = array();
+        foreach ($this->xPath->query('sch:let', $rule) as $node) {
+            $name = Helpers::getAttribute($node, 'name');
+            $value = Helpers::getAttribute($node, 'value');
+            $variables[$name] = $value;
+        }
+        return $variables;
+    }
+
 
 
 	/**
 	 * Expands <sch:name> and <sch:value-of> in assertion/report message.
 	 * @return string
 	 */
-	protected function statementToMessage(DOMElement $stmt, SchematronXPath $xPath, DOMNode $current)
+	protected function statementToMessage(DOMElement $stmt, SchematronXPath $xPath, DOMNode $current, $lets = array())
 	{
 		$message = '';
 		foreach ($stmt->childNodes as $node) {
@@ -864,7 +920,11 @@ class Schematron
 					$message .= $xPath->evaluate('name(' . Helpers::getAttribute($node, 'path', '') . ')', $current);
 
 				} elseif ($node->localName === 'value-of') {
-					$message .= $xPath->evaluate('string(' . Helpers::getAttribute($node, 'select') . ')', $current);
+                    $selected =  Helpers::getAttribute($node, 'select');
+                    if ($lets){
+						$selected = call_user_func($this->getReplaceCb(),$selected, $lets) ;
+					}
+					$message .= $xPath->evaluate('string(' . $selected . ')', $current);
 
 				} else {
 					/** @todo warning? */
@@ -999,7 +1059,7 @@ class SchematronXPath extends DOMXPath
 	/**
 	 * ($registerNodeNS is FALSE in opposition to DOMXPath default value)
 	 */
-	public function query($expression, DOMNode $context = NULL, $registerNodeNS = FALSE)
+	public function query($expression, DOMNode $context = NULL, $registerNodeNS = FALSE): mixed
 	{
 		return parent::query($expression, $context, $registerNodeNS);
 	}
@@ -1009,14 +1069,14 @@ class SchematronXPath extends DOMXPath
 	/**
 	 * ($registerNodeNS is FALSE in opposition to DOMXPath default value)
 	 */
-	public function evaluate($expression, DOMNode $context = NULL, $registerNodeNS = FALSE)
+	public function evaluate($expression, DOMNode $context = NULL, $registerNodeNS = FALSE): mixed
 	{
 		return parent::evaluate($expression, $context, $registerNodeNS);
 	}
 
 
 
-	public function queryContext($expression, DOMNode $context = NULL, $registerNodeNS = FALSE)
+	public function queryContext($expression, DOMNode $context = NULL, $registerNodeNS = FALSE): mixed
 	{
 		if (isset($expression[0]) && $expression[0] !== '.' && $expression[0] !== '/') {
 			$expression = "//$expression";

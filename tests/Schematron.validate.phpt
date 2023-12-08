@@ -40,16 +40,19 @@ $simple = array(
 	'S13 - fail - milo',
 	'S14 - fail - name',
 	'S15 - fail',
+	'S17 - fail',
+	'S19 - fail',
 );
 Assert::same($simple, $sch->validate($doc));
 
 
 # RESULT_COMPLEX
 $complex = $sch->validate($doc, $sch::RESULT_COMPLEX);
-Assert::same(count($complex), 3);
+Assert::same(count($complex), 4);
 Assert::true(isset($complex['#p1']->rules[0]->errors[0]->message));
 Assert::same($complex['#p1']->rules[0]->errors[0]->message, 'S15 - fail');
 Assert::same(reset($complex)->title, 'Pattern 1');
+Assert::true(isset($complex['#let']->rules[0]->errors[0]->message));
 
 
 # RESULT_EXCEPTION

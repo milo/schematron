@@ -67,4 +67,15 @@
 		</rule>
 	</pattern>
 
+	<pattern id="let">
+		<rule context="root">
+			<let name="milo" value="//person/name"/>
+			<assert test="//person/name = $milo">S16 - pass</assert>
+			<let name="nick" value="//a:nickname"/>
+			<assert test="//person/name = $nick">S17 - fail</assert>
+			<assert test="document('external-document.xml')//names/name[@value=$nick]">S18 - pass</assert>
+			<assert test="document('external-document.xml')//names/name[@value=$milo]">S19 - fail</assert>
+		</rule>
+	</pattern>
+
 </schema>
